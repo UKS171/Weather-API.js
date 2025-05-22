@@ -1,2 +1,54 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+function getWeather() {
+  try {
+    const inputRef = document.querySelector("#cityName");
+    const divRef = document.querySelector(".response");
+    //If inputRef of specific id not found
+    if (!inputRef) {
+      alert("Invalid input ref");
+      return;
+    }
+    const cityName = inputRef.value.toLowerCase();
+    if (!cityName) {
+      alert("Please enter a city name.");
+      return;
+    }
+    const body = {
+      contents: [
+        {
+          parts: [{ text: `What is the current weather in ${cityName}?` }],
+        },
+      ],
+    };
+    const weatherPromise = fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyA-6strK0EYO3mLFHbeLaLH9-C6gmrPUg4`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify(body),
+      }
+    );
+    if (weatherPromise.ok == false) {
+      alert("Error,Check your internet");
+      return;
+    }
+    weatherPromise
+      .then((res) => res.json())
+      .then((data) => {
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) {
+          divRef.textContent = ` Weather in ${cityName}:\n${reply}`;
+        } else {
+          divRef.textContent = "No response from Gemini.";
+        }
+        inputRef.value = "";
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+        divRef.textContent = "Error fetching weather from Gemini API.";
+      });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+  }
+}
